@@ -24,10 +24,10 @@
 #define pinRdir 12            //pin D12
 
 //define variables to be used in script
-int leftSensor = 1;
-int rightSensor = 1;
-int midSensor = 1;
-int topSensor = 1;
+int leftSensor;
+int rightSensor;
+int midSensor;
+int topSensor;
 
 unsigned long leftTime = 0.0;
 unsigned long prevLeftTime = 0.0;
@@ -36,7 +36,8 @@ unsigned long rightTime = 0.0;
 unsigned long prevRightTime = 0.0;
 unsigned long diffRightTime = 0.0;
 
-int turnCounter = 0;
+int turnCounter;
+boolean topCount;
 
 //------------------------------------------------------------------------------------
 
@@ -61,7 +62,9 @@ void setup() {
   pinMode(pinLdir, OUTPUT);
   pinMode(pinRdir, OUTPUT);
 
-  delay(3000);
+  turnCounter = 1;
+  topCount = false;
+  drive('B', 16, 16);
 }
 
 //------------------------------------------------------------------------------------
@@ -97,6 +100,7 @@ void drive(char dir, int spe1, int spe2){
   
 }
 
+
 //------------------------------------------------------------------------------------
 
 // the loop function runs over and over again forever
@@ -119,45 +123,66 @@ void loop() {
   }
 
   if(!topSensor){
-    if(turnCounter == 0){
-      drive('F', 0, 0);
+    if(turnCounter == 1){
+      topCount = true;
     }
-    if(turnCounter == 4){
-      drive('B', 16, 16);
-      delay(1500);
+    if(turnCounter >= 3){
+      drive('B', 15, 15);
+      delay(500);
     }
   }
+
+  if(topCount){
   if(leftSensor && rightSensor && !midSensor){
-    drive('F', 16, 16);
+    if(turnCounter < 3) drive('F', 15, 15);
+    else if(turnCounter == 4) drive('F', 10, 10);
+    else drive('F', 10, 10);
   }
+  
   if(!leftSensor && rightSensor && !midSensor){
-    if(diffLeftTime >= 800) drive('F', 14, 16);
-    else if(800 > diffLeftTime >= 400) drive('F', 10, 16);
-    else if(400 > diffLeftTime >= 200) drive('F', 7, 16);
-    else if(200 > diffLeftTime >= 50) drive('F', 3, 16);
-    else drive('F', 0, 16);
+    if(turnCounter > 3){
+      drive('F', 15, 8);
+      delay(100);
+    }
+    else{
+    if(diffLeftTime >= 400) drive('F', 12, 15);
+    else if(400 > diffLeftTime >= 200) drive('F', 8, 15);
+    else if(200 > diffLeftTime >= 100) drive('F', 4, 15);
+    else if(100 > diffLeftTime >= 50) drive('F', 0, 15);
+    else drive('L', 5, 10);
+    }
   }
   if(leftSensor && !rightSensor && !midSensor){
-    if(diffRightTime >= 800) drive('F', 16, 14);
-    else if(800 > diffRightTime >= 400) drive('F', 16, 10);
-    else if(400 > diffRightTime >= 200) drive('F', 16, 7);
-    else if(200 > diffRightTime >= 50) drive('F', 16, 3);
-    else drive('F', 16, 0);
+    if(turnCounter > 3){
+      drive('F', 8, 15);
+      delay(100);
+    }
+    else{
+    if(diffRightTime >= 400) drive('F', 15, 12);
+    else if(400 > diffRightTime >= 200) drive('F', 15, 8);
+    else if(200 > diffRightTime >= 100) drive('F', 15, 4);
+    else if(100 > diffRightTime >= 50) drive('F', 15, 0);
+    else drive('R', 10, 5);
+    }
   }
   if(!leftSensor && !rightSensor && !midSensor){
     if(turnCounter < 3){
-      drive('F', 8, 16);
-      delay(500);
+      drive('L', 3, 15);
+      delay(300);
+      //drive('F', 0, 0);
+      //delay(5000);
       turnCounter++;
     }
     else if(turnCounter == 3){
-      drive('F', 16, 8);
-      delay(500);
+      drive('R', 13, 3);
+      delay(300);
+      //drive('F', 0, 0);
+      //delay(5000);
       turnCounter++;
     }
-    else drive('B', 16, 16);
   }
   if(leftSensor && rightSensor && midSensor){
-    drive('B', 16, 16);
+    drive('B', 15, 15);
+  }
   }
 }
